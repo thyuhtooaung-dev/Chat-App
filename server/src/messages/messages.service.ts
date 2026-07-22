@@ -113,14 +113,40 @@ export class MessagesService {
     userUsername?: string,
   ): Promise<{ updatedCount: number }> {
     if (chatType === 'singleChat') {
-      const selfIdentifiers = [userId, userUsername].filter(Boolean);
+      if (!userUsername && userId) {
+        const sampleMsg = await this.messageRepository.findOne({
+          where: [{ senderId: userId }],
+        });
+        if (sampleMsg?.senderUsername) {
+          userUsername = sampleMsg.senderUsername;
+        }
+      }
+
+      const selfIdentifiers = Array.from(
+        new Set([userId, userUsername].filter(Boolean)),
+      );
+
+      let recipientIdentifiers = [recipientId];
+      const otherSample = await this.messageRepository.findOne({
+        where: [{ senderId: recipientId }, { senderUsername: recipientId }],
+      });
+      if (otherSample) {
+        if (otherSample.senderId)
+          recipientIdentifiers.push(otherSample.senderId);
+        if (otherSample.senderUsername)
+          recipientIdentifiers.push(otherSample.senderUsername);
+      }
+      recipientIdentifiers = Array.from(
+        new Set(recipientIdentifiers.filter(Boolean)),
+      );
+
       const result = await this.messageRepository
         .createQueryBuilder()
         .update(Message)
         .set({ isRead: true })
         .where(
-          '(senderId = :recipientId OR senderUsername = :recipientId) AND (recipientId IN (:...selfIdentifiers)) AND isRead = false',
-          { recipientId, selfIdentifiers },
+          '(senderId IN (:...recipientIdentifiers) OR senderUsername IN (:...recipientIdentifiers)) AND (recipientId IN (:...selfIdentifiers)) AND isRead = false',
+          { recipientIdentifiers, selfIdentifiers },
         )
         .execute();
       return { updatedCount: result.affected || 0 };
