@@ -261,7 +261,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (!currentUser) return;
-    let isCancelled = false;
+    let isSubscribed = true;
 
     const loadInitialHistory = async () => {
       setIsLoadingHistory(true);
@@ -274,49 +274,61 @@ export default function ChatPage() {
         });
 
         const res = await fetch(`${apiUrl}/messages?${queryParams.toString()}`);
-        if (res.ok && !isCancelled) {
+        if (res.ok) {
           const data = (await res.json()) as {
             messages: DBMessageResponse[];
             hasMore: boolean;
           };
-          const formatted: ChatMessage[] = data.messages.map((m) => ({
-            id: m.id,
-            senderId: m.senderId,
-            from: m.senderUsername || m.senderId,
-            msg: m.content,
-            chatType: m.chatType,
-            timestamp: new Date(m.createdAt).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-            createdAt: m.createdAt,
-            isSelf:
-              m.senderId === currentUser.id ||
-              m.senderUsername === currentUser.username,
-            isEdited: m.isEdited,
-            isDeleted: m.isDeleted,
-            isRead: m.isRead,
-          }));
+          if (isSubscribed) {
+            const formatted: ChatMessage[] = data.messages.map((m) => ({
+              id: m.id,
+              senderId: m.senderId,
+              from: m.senderUsername || m.senderId,
+              msg: m.content,
+              chatType: m.chatType,
+              timestamp: new Date(m.createdAt).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              createdAt: m.createdAt,
+              isSelf:
+                m.senderId === currentUser.id ||
+                m.senderUsername === currentUser.username,
+              isEdited: m.isEdited,
+              isDeleted: m.isDeleted,
+              isRead: m.isRead,
+            }));
 
-          setHasMore(data.hasMore);
-          setMessages(formatted);
-
-          // Mark conversation read on load
-          markConversationAsRead(activeRecipient.id, activeRecipient.type);
+            setHasMore(data.hasMore);
+            setMessages(formatted);
+            markConversationAsRead(activeRecipient.id, activeRecipient.type);
+          }
+        } else {
+          if (isSubscribed) setErrorMessage("Failed to fetch messages.");
         }
       } catch {
-        if (!isCancelled) setErrorMessage("Failed to load message history.");
+        if (isSubscribed) setErrorMessage("Failed to load message history.");
       } finally {
-        if (!isCancelled) setIsLoadingHistory(false);
+        if (isSubscribed) {
+          setIsLoadingHistory(false);
+        }
       }
     };
 
-    loadInitialHistory();
+    queueMicrotask(() => {
+      loadInitialHistory();
+    });
 
     return () => {
-      isCancelled = true;
+      isSubscribed = false;
     };
-  }, [activeRecipient.id, activeRecipient.type, currentUser, apiUrl, markConversationAsRead]);
+  }, [
+    activeRecipient.id,
+    activeRecipient.type,
+    currentUser,
+    apiUrl,
+    markConversationAsRead,
+  ]);
 
   // Heartbeat loop every 15 seconds
   useEffect(() => {
