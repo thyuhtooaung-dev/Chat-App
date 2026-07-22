@@ -123,6 +123,13 @@ export default function ChatPage() {
   const [editBioText, setEditBioText] = useState<string>("");
   const [isSavingBio, setIsSavingBio] = useState<boolean>(false);
 
+  const activeRecipientRef = useRef(activeRecipient);
+  useEffect(() => {
+    activeRecipientRef.current = activeRecipient;
+  }, [activeRecipient]);
+
+  const connectedUserRef = useRef<string | null>(null);
+
   const connRef = useRef<AgoraConnection | null>(null);
   const acRef = useRef<AgoraSDK | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -334,6 +341,10 @@ export default function ChatPage() {
         return;
       }
 
+      if (connectedUserRef.current === username && connRef.current) {
+        return;
+      }
+
       setStatus("Connecting");
       setErrorMessage(null);
 
@@ -357,8 +368,12 @@ export default function ChatPage() {
         }
 
         if (connRef.current) {
-          connRef.current.removeEventHandler("AGORA_CHAT_HANDLER");
-          connRef.current.close();
+          try {
+            connRef.current.removeEventHandler("AGORA_CHAT_HANDLER");
+            connRef.current.close();
+          } catch {
+            // ignore
+          }
           connRef.current = null;
         }
 
@@ -368,6 +383,7 @@ export default function ChatPage() {
 
         const conn = new SDK.connection(connParams);
         connRef.current = conn;
+        connectedUserRef.current = username;
 
         conn.addEventHandler("AGORA_CHAT_HANDLER", {
           onConnected: () => {
@@ -376,6 +392,7 @@ export default function ChatPage() {
           },
           onDisconnected: () => {
             setStatus("Disconnected");
+            connectedUserRef.current = null;
           },
           onTextMessage: (message: AgoraChat.TextMsgBody) => {
             const textMsg = message as AgoraChat.TextMsgBody & {
@@ -383,9 +400,11 @@ export default function ChatPage() {
               chatType?: string;
             };
 
+            const currentRecip = activeRecipientRef.current;
+
             // Check if typing signal
             if (textMsg.msg === "__TYPING__") {
-              if (textMsg.from === activeRecipient.id) {
+              if (textMsg.from === currentRecip.id) {
                 setIsRecipientTyping(true);
                 if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
                 typingTimerRef.current = setTimeout(() => {
@@ -411,9 +430,13 @@ export default function ChatPage() {
             };
             setMessages((prev) => [...prev, newMsg]);
             fetchConversations();
-            markConversationAsRead(activeRecipient.id, activeRecipient.type);
+            markConversationAsRead(currentRecip.id, currentRecip.type);
           },
           onError: (error: AgoraChat.ErrorEvent) => {
+            if (error?.type === 206) {
+              // User already logged in on another device/tab error, ignore reconnect loop
+              return;
+            }
             setStatus("Error");
             setErrorMessage(formatError(error));
           },
@@ -443,7 +466,7 @@ export default function ChatPage() {
         setErrorMessage(formatError(err));
       }
     },
-    [appId, apiUrl, fetchConversations, activeRecipient, markConversationAsRead],
+    [appId, apiUrl, fetchConversations, markConversationAsRead],
   );
 
   useEffect(() => {
@@ -455,7 +478,9 @@ export default function ChatPage() {
     queueMicrotask(() => {
       fetchUserDirectory();
       fetchConversations();
-      connectAgoraChat(currentUser.username);
+      if (connectedUserRef.current !== currentUser.username) {
+        connectAgoraChat(currentUser.username);
+      }
     });
   }, [
     isMounted,
