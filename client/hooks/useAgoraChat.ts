@@ -208,8 +208,19 @@ export const useAgoraChat = ({
         chatType: recipient.type,
       };
 
-      const msg = SDK.message.create(option);
-      return await connRef.current.send(msg);
+      try {
+        const msg = SDK.message.create(option);
+        return await connRef.current.send(msg);
+      } catch (err) {
+        if (recipient.type === "groupChat") {
+          console.warn(
+            "Agora group send bypassed (group not registered in Agora console):",
+            err,
+          );
+          return null;
+        }
+        throw err;
+      }
     },
     [status],
   );

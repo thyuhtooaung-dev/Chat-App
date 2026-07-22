@@ -29,7 +29,6 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
-        {/* Close Button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-slate-400 hover:text-white text-lg cursor-pointer"
@@ -38,7 +37,6 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         </button>
 
         <div className="flex flex-col items-center text-center">
-          {/* Avatar */}
           <div
             style={{
               backgroundColor: selectedProfileUser.avatarColor || '#3B82F6',
@@ -71,7 +69,6 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </p>
           )}
 
-          {/* Bio Section */}
           <div className="w-full mt-6 bg-slate-950/50 border border-slate-800/80 rounded-xl p-4 text-left">
             <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
               Bio / Status

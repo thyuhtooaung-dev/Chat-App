@@ -146,6 +146,15 @@ export class MessagesService {
     userId: string,
     userUsername?: string,
   ): Promise<ConversationSummary[]> {
+    if (!userUsername && userId) {
+      const sampleMsg = await this.messageRepository.findOne({
+        where: [{ senderId: userId }],
+      });
+      if (sampleMsg?.senderUsername) {
+        userUsername = sampleMsg.senderUsername;
+      }
+    }
+
     const selfIdentifiers = [userId, userUsername].filter(Boolean);
 
     const subQuery = this.messageRepository

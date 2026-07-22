@@ -26,8 +26,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onLogout,
   formatLastSeen,
 }) => {
-  const getSidebarSummary = (recipientId: string) => {
-    return conversations.find((c) => c.id === recipientId);
+  const getSidebarSummary = (recipientId: string, userObj?: UserProfile) => {
+    return conversations.find(
+      (c) => c.id === recipientId || (userObj && c.id === userObj.id),
+    );
   };
 
   const globalSummary = getSidebarSummary('global_group');
@@ -35,7 +37,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside className="w-80 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0">
-      {/* Current User Header */}
       <div className="p-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
         <div
           onClick={() => currentUser && onOpenProfile(currentUser)}
@@ -77,10 +78,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </svg>
         </button>
       </div>
-
-      {/* Conversations / Direct Messages List */}
       <div className="flex-1 overflow-y-auto p-3 space-y-4">
-        {/* Channels */}
         <div>
           <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">
             Channels
@@ -115,8 +113,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             )}
           </button>
         </div>
-
-        {/* Direct Messages */}
         <div>
           <div className="flex items-center justify-between px-3 mb-2">
             <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
@@ -136,7 +132,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               .filter((u) => u.username !== currentUser?.username)
               .map((u) => {
                 const isActive = activeRecipient.id === u.username;
-                const summary = getSidebarSummary(u.username);
+                const summary = getSidebarSummary(u.username, u);
                 const unread = summary?.unreadCount || 0;
                 return (
                   <button

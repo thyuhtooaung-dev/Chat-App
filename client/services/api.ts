@@ -9,8 +9,15 @@ export const fetchUserDirectory = async (): Promise<UserProfile[]> => {
   return res.json();
 };
 
-export const fetchConversations = async (userId: string): Promise<ConversationSummary[]> => {
-  const res = await fetch(`${getApiUrl()}/messages/conversations?userId=${userId}`);
+export const fetchConversations = async (
+  userId: string,
+  username?: string,
+): Promise<ConversationSummary[]> => {
+  const queryParams = new URLSearchParams({ userId });
+  if (username) {
+    queryParams.append('username', username);
+  }
+  const res = await fetch(`${getApiUrl()}/messages/conversations?${queryParams.toString()}`);
   if (!res.ok) throw new Error('Failed to fetch conversations');
   return res.json();
 };

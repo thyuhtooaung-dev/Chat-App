@@ -39,7 +39,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         msg.isSelf ? 'flex-row-reverse' : 'flex-row'
       }`}
     >
-      {/* Sender Avatar */}
       <div
         onClick={() => onOpenProfileByUsername(msg.from)}
         style={{ backgroundColor: getAvatarColor(msg.from) }}
@@ -51,11 +50,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       <div
         className={`max-w-[70%] rounded-2xl px-4 py-2.5 shadow-md text-xs relative ${
           msg.isSelf
-            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-br-none'
+            ? 'bg-linear-to-r from-blue-600 to-indigo-600 text-white rounded-br-none'
             : 'bg-slate-800 text-slate-100 border border-slate-700/50 rounded-bl-none'
         }`}
       >
-        {/* Sender Name in Groups */}
         {!msg.isSelf && (
           <p
             onClick={() => onOpenProfileByUsername(msg.from)}
@@ -65,7 +63,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           </p>
         )}
 
-        {/* Message Content / Edit Mode */}
         {isEditingThis ? (
           <div className="space-y-2 mt-1">
             <textarea
@@ -91,7 +88,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           </div>
         ) : (
           <p
-            className={`whitespace-pre-wrap break-words leading-relaxed ${
+            className={`whitespace-pre-wrap wrap-break-word leading-relaxed ${
               msg.isDeleted ? 'italic text-slate-400 opacity-80' : ''
             }`}
           >
@@ -99,7 +96,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           </p>
         )}
 
-        {/* Timestamp, Edited Badge & Read Receipts */}
         <div
           className={`flex items-center justify-end gap-1.5 mt-1 text-[10px] ${
             msg.isSelf ? 'text-blue-200 opacity-90' : 'text-slate-400'
@@ -119,7 +115,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           )}
         </div>
 
-        {/* Edit / Delete Hover Action Menu */}
         {msg.isSelf && !msg.isDeleted && !isEditingThis && (
           <div className="absolute -top-3 right-0 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 border border-slate-700 rounded-lg shadow px-1.5 py-0.5 flex gap-1 z-10">
             <button

@@ -55,7 +55,6 @@ export const MessageFeed: React.FC<MessageFeedProps> = ({
       ref={scrollContainerRef}
       className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-950"
     >
-      {/* Pagination Load More Button */}
       {hasMore && (
         <div className="flex justify-center my-2">
           <button
@@ -68,7 +67,6 @@ export const MessageFeed: React.FC<MessageFeedProps> = ({
         </div>
       )}
 
-      {/* Message List */}
       {messages.map((msg) => (
         <MessageBubble
           key={msg.id}

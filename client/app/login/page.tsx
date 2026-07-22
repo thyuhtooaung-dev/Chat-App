@@ -14,7 +14,6 @@ export default function LoginPage() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
   useEffect(() => {
-    // Check if user is already logged in
     const storedUser = localStorage.getItem("currentUser");
     if (storedUser) {
       router.push("/chat");
@@ -53,7 +52,6 @@ export default function LoginPage() {
         throw new Error("Invalid response from server");
       }
 
-      // Save user session to localStorage
       localStorage.setItem("currentUser", JSON.stringify(data.user));
       localStorage.setItem("agoraToken", data.agoraToken);
 
@@ -72,7 +70,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center p-4 font-sans relative overflow-hidden">
-      {/* Background Decorative Gradients */}
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
 

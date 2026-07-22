@@ -84,10 +84,9 @@ export default function ChatPage() {
   const loadConversationsList = useCallback(async () => {
     if (!currentUser) return;
     try {
-      const data = await fetchConversations(currentUser.id);
+      const data = await fetchConversations(currentUser.id, currentUser.username);
       setConversations(data);
     } catch {
-      // ignore
     }
   }, [currentUser]);
 
@@ -232,9 +231,50 @@ export default function ChatPage() {
     const interval = setInterval(() => {
       sendUserHeartbeat(currentUser.id).catch(() => {});
       loadDirectory();
-    }, 15000);
+      loadConversationsList();
+      if (activeRecipient.type === "groupChat") {
+        fetchMessagesHistory(
+          currentUser.id,
+          currentUser.username,
+          activeRecipient.id,
+          activeRecipient.type,
+          undefined,
+          50,
+        )
+          .then((data) => {
+            const formatted: ChatMessage[] = data.messages.map((m) => ({
+              id: m.id,
+              senderId: m.senderId,
+              from: m.senderUsername || m.senderId,
+              msg: m.content,
+              chatType: m.chatType,
+              timestamp: new Date(m.createdAt).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              createdAt: m.createdAt,
+              isSelf:
+                m.senderId === currentUser.id ||
+                m.senderUsername === currentUser.username,
+              isEdited: m.isEdited,
+              isDeleted: m.isDeleted,
+              isRead: m.isRead,
+            }));
+            setMessages((prev) => {
+              if (
+                prev.length === formatted.length &&
+                prev[prev.length - 1]?.id === formatted[formatted.length - 1]?.id
+              ) {
+                return prev;
+              }
+              return formatted;
+            });
+          })
+          .catch(() => {});
+      }
+    }, 4000);
     return () => clearInterval(interval);
-  }, [currentUser, loadDirectory]);
+  }, [currentUser, activeRecipient, loadDirectory, loadConversationsList]);
 
   const handleLoadOlderMessages = async () => {
     if (!currentUser || messages.length === 0) return;
