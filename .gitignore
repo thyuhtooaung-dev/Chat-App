@@ -1,0 +1,28 @@
+# Dependency directories
+node_modules/
+**/node_modules/
+
+# Next.js build output
+.next/
+**/next-env.d.ts
+
+# NestJS build output
+dist/
+**/dist/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+bun.lock*
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE & OS files
+.DS_Store
+.vscode/
+.idea/
