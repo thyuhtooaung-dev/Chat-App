@@ -153,18 +153,11 @@ export default function ChatPage() {
       if (res.ok) {
         const data = (await res.json()) as UserProfile[];
         setUserDirectory(data);
-        if (currentUser) {
-          const freshCurrent = data.find((u) => u.id === currentUser.id);
-          if (freshCurrent) {
-            setCurrentUser(freshCurrent);
-            localStorage.setItem("currentUser", JSON.stringify(freshCurrent));
-          }
-        }
       }
     } catch {
       // ignore
     }
-  }, [apiUrl, currentUser]);
+  }, [apiUrl]);
 
   const fetchConversations = useCallback(async () => {
     if (!currentUser) return;
@@ -309,9 +302,7 @@ export default function ChatPage() {
       } catch {
         if (isSubscribed) setErrorMessage("Failed to load message history.");
       } finally {
-        if (isSubscribed) {
-          setIsLoadingHistory(false);
-        }
+        setIsLoadingHistory(false);
       }
     };
 
