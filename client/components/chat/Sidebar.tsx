@@ -1,4 +1,5 @@
 import React from 'react';
+import { LogOut, Hash, RotateCw } from 'lucide-react';
 import { UserProfile, ConversationSummary, Recipient, ConnectionStatus } from '../../types/chat';
 
 interface SidebarProps {
@@ -68,14 +69,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           title="Log out"
           className="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition cursor-pointer"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-            />
-          </svg>
+          <LogOut className="w-5 h-5" />
         </button>
       </div>
       <div className="flex-1 overflow-y-auto p-3 space-y-4">
@@ -97,8 +91,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 : 'hover:bg-slate-800/80 text-slate-300'
             }`}
           >
-            <div className="w-8 h-8 rounded-lg bg-purple-900/50 border border-purple-700/50 flex items-center justify-center text-purple-300 font-bold text-xs">
-              #
+            <div className="w-8 h-8 rounded-lg bg-purple-900/50 border border-purple-700/50 flex items-center justify-center text-purple-300 font-bold text-xs shrink-0">
+              <Hash className="w-4 h-4" />
             </div>
             <div className="flex-1 truncate">
               <p className="text-xs font-semibold">Global Group Chat</p>
@@ -121,9 +115,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               onClick={onRefreshDirectory}
               title="Refresh contacts"
-              className="text-slate-500 hover:text-slate-300 text-xs cursor-pointer"
+              className="text-slate-500 hover:text-slate-300 text-xs cursor-pointer p-1 rounded-md hover:bg-slate-800 transition"
             >
-              ↻
+              <RotateCw className="w-3.5 h-3.5" />
             </button>
           </div>
 

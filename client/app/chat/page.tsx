@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { X, AlertCircle } from "lucide-react";
 import {
   UserProfile,
   ChatMessage,
@@ -477,12 +478,15 @@ export default function ChatPage() {
       <main className="flex-1 flex flex-col h-full bg-slate-950 relative">
         {errorMessage && (
           <div className="bg-rose-900/80 border-b border-rose-700 text-rose-200 text-xs px-4 py-2 flex justify-between items-center z-20">
-            <span>{errorMessage}</span>
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-rose-300 shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
             <button
               onClick={() => setErrorMessage(null)}
-              className="text-rose-300 hover:text-white font-bold ml-4 cursor-pointer"
+              className="text-rose-300 hover:text-white p-1 rounded hover:bg-rose-800/60 transition ml-4 cursor-pointer"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
           </div>
         )}

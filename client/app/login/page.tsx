@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { MessageSquare, AlertCircle, X, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -76,19 +77,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl relative z-10">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-linear-to-tr from-blue-600 to-purple-600 mb-4 shadow-lg shadow-blue-500/20">
-            <svg
-              className="w-8 h-8 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-              />
-            </svg>
+            <MessageSquare className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-white tracking-tight">
             {isRegister ? "Create an Account" : "Welcome Back"}
@@ -101,13 +90,16 @@ export default function LoginPage() {
         </div>
 
         {errorMessage && (
-          <div className="mb-6 p-3 bg-rose-950/80 border border-rose-800 text-rose-200 text-xs rounded-xl flex items-center justify-between">
-            <span>⚠️ {errorMessage}</span>
+          <div className="mb-6 p-3 bg-rose-950/80 border border-rose-800 text-rose-200 text-xs rounded-xl flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
             <button
               onClick={() => setErrorMessage(null)}
-              className="ml-2 font-bold hover:text-white"
+              className="p-1 hover:text-white rounded-md hover:bg-rose-900 transition cursor-pointer"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
           </div>
         )}
@@ -144,29 +136,11 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-medium py-3 rounded-xl text-sm transition shadow-lg shadow-blue-900/30 flex items-center justify-center gap-2 mt-2 disabled:opacity-50"
+            className="w-full bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-medium py-3 rounded-xl text-sm transition shadow-lg shadow-blue-900/30 flex items-center justify-center gap-2 mt-2 disabled:opacity-50 cursor-pointer"
           >
             {loading ? (
               <>
-                <svg
-                  className="animate-spin h-4 w-4 text-white"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8H4z"
-                  />
-                </svg>
+                <Loader2 className="animate-spin h-4 w-4 text-white" />
                 {isRegister ? "Creating Account..." : "Signing In..."}
               </>
             ) : isRegister ? (

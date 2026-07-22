@@ -1,4 +1,5 @@
 import React from 'react';
+import { X } from 'lucide-react';
 import { UserProfile } from '../../types/chat';
 
 interface UserProfileModalProps {
@@ -31,9 +32,9 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white text-lg cursor-pointer"
+          className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
         >
-          ✕
+          <X className="w-4 h-4" />
         </button>
 
         <div className="flex flex-col items-center text-center">

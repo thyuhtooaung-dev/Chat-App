@@ -1,4 +1,5 @@
 import React from 'react';
+import { Hash } from 'lucide-react';
 import { UserProfile, Recipient } from '../../types/chat';
 
 interface ChatHeaderProps {
@@ -33,11 +34,13 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                 ? '#581C87'
                 : activeContactUser?.avatarColor || '#1E40AF',
           }}
-          className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm text-white border border-slate-700/50 shadow"
+          className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm text-white border border-slate-700/50 shadow shrink-0"
         >
-          {activeRecipient.type === 'groupChat'
-            ? '#'
-            : activeRecipient.name[0]?.toUpperCase()}
+          {activeRecipient.type === 'groupChat' ? (
+            <Hash className="w-4 h-4" />
+          ) : (
+            activeRecipient.name[0]?.toUpperCase()
+          )}
         </div>
         <div>
           <h2 className="text-sm font-bold text-white flex items-center gap-2 group-hover:text-blue-400 transition">

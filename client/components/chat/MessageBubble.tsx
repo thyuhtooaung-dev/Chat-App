@@ -1,4 +1,5 @@
 import React from 'react';
+import { Check, CheckCheck, Pencil, Trash2 } from 'lucide-react';
 import { ChatMessage, UserProfile } from '../../types/chat';
 
 interface MessageBubbleProps {
@@ -54,15 +55,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             : 'bg-slate-800 text-slate-100 border border-slate-700/50 rounded-bl-none'
         }`}
       >
-        {!msg.isSelf && (
-          <p
-            onClick={() => onOpenProfileByUsername(msg.from)}
-            className="text-[10px] font-bold text-blue-400 mb-1 cursor-pointer hover:underline"
-          >
-            {msg.from}
-          </p>
-        )}
-
         {isEditingThis ? (
           <div className="space-y-2 mt-1">
             <textarea
@@ -105,31 +97,31 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           <span>{msg.timestamp}</span>
 
           {msg.isSelf && !msg.isDeleted && (
-            <span
-              className={`text-[11px] font-bold shrink-0 ${
-                msg.isRead ? 'text-cyan-300' : 'text-blue-200 opacity-70'
-              }`}
-            >
-              {msg.isRead ? '✓✓' : '✓'}
+            <span className="shrink-0 flex items-center">
+              {msg.isRead ? (
+                <CheckCheck className="w-3.5 h-3.5 text-cyan-300" />
+              ) : (
+                <Check className="w-3.5 h-3.5 text-blue-200 opacity-70" />
+              )}
             </span>
           )}
         </div>
 
         {msg.isSelf && !msg.isDeleted && !isEditingThis && (
-          <div className="absolute -top-3 right-0 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 border border-slate-700 rounded-lg shadow px-1.5 py-0.5 flex gap-1 z-10">
+          <div className="absolute -top-3 right-0 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 border border-slate-700 rounded-lg shadow px-1.5 py-1 flex gap-1 z-10">
             <button
               onClick={() => onStartEditing(msg)}
-              className="text-[10px] text-slate-300 hover:text-blue-400 px-1 cursor-pointer"
+              className="text-slate-300 hover:text-blue-400 p-0.5 cursor-pointer"
               title="Edit message"
             >
-              ✏️
+              <Pencil className="w-3 h-3" />
             </button>
             <button
               onClick={() => onDeleteMessage(msg.id)}
-              className="text-[10px] text-slate-300 hover:text-rose-400 px-1 cursor-pointer"
+              className="text-slate-300 hover:text-rose-400 p-0.5 cursor-pointer"
               title="Delete message"
             >
-              🗑️
+              <Trash2 className="w-3 h-3" />
             </button>
           </div>
         )}

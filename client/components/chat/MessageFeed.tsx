@@ -1,4 +1,5 @@
 import React from 'react';
+import { ArrowUp, Loader2 } from 'lucide-react';
 import { ChatMessage, UserProfile } from '../../types/chat';
 import { MessageBubble } from './MessageBubble';
 
@@ -43,7 +44,7 @@ export const MessageFeed: React.FC<MessageFeedProps> = ({
     return (
       <div className="flex-1 flex items-center justify-center bg-slate-950">
         <div className="flex flex-col items-center gap-2 text-slate-400">
-          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
           <span className="text-xs">Loading message history...</span>
         </div>
       </div>
@@ -60,9 +61,19 @@ export const MessageFeed: React.FC<MessageFeedProps> = ({
           <button
             onClick={onLoadOlderMessages}
             disabled={isLoadingMore}
-            className="text-xs bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 px-3 py-1.5 rounded-full transition disabled:opacity-50 cursor-pointer shadow"
+            className="text-xs bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 px-3.5 py-1.5 rounded-full transition disabled:opacity-50 cursor-pointer shadow flex items-center gap-1.5"
           >
-            {isLoadingMore ? 'Loading older messages...' : '↑ Load older messages'}
+            {isLoadingMore ? (
+              <>
+                <Loader2 className="w-3 h-3 animate-spin text-blue-400" />
+                <span>Loading older messages...</span>
+              </>
+            ) : (
+              <>
+                <ArrowUp className="w-3 h-3 text-blue-400" />
+                <span>Load older messages</span>
+              </>
+            )}
           </button>
         </div>
       )}
