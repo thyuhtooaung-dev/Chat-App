@@ -75,15 +75,22 @@ const formatLastSeen = (lastSeenDate?: string, isOnline?: boolean): string => {
 export default function ChatPage() {
   const router = useRouter();
 
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
-    if (typeof window === "undefined") return null;
-    try {
-      const storedUser = localStorage.getItem("currentUser");
-      return storedUser ? (JSON.parse(storedUser) as UserProfile) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [isMounted, setIsMounted] = useState<boolean>(false);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      setIsMounted(true);
+      try {
+        const storedUser = localStorage.getItem("currentUser");
+        if (storedUser) {
+          setCurrentUser(JSON.parse(storedUser) as UserProfile);
+        }
+      } catch {
+        // ignore
+      }
+    });
+  }, []);
 
   const [userDirectory, setUserDirectory] = useState<UserProfile[]>([]);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
@@ -440,6 +447,7 @@ export default function ChatPage() {
   );
 
   useEffect(() => {
+    if (!isMounted) return;
     if (!currentUser) {
       router.push("/login");
       return;
@@ -450,6 +458,7 @@ export default function ChatPage() {
       connectAgoraChat(currentUser.username);
     });
   }, [
+    isMounted,
     router,
     currentUser,
     fetchUserDirectory,
