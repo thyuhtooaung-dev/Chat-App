@@ -118,7 +118,8 @@ export default function ChatPage() {
 
   // Phase 2 States
   const [isRecipientTyping, setIsRecipientTyping] = useState<boolean>(false);
-  const [selectedProfileUser, setSelectedProfileUser] = useState<UserProfile | null>(null);
+  const [selectedProfileUser, setSelectedProfileUser] =
+    useState<UserProfile | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
   const [editBioText, setEditBioText] = useState<string>("");
   const [isSavingBio, setIsSavingBio] = useState<boolean>(false);
@@ -174,20 +175,42 @@ export default function ChatPage() {
     }
   }, [apiUrl, currentUser]);
 
+  const sendReadSignal = useCallback(
+    async (recipId: string, type: "singleChat" | "groupChat") => {
+      if (type !== "singleChat" || !connRef.current || !currentUser) return;
+
+      try {
+        const SDK = await getAgoraChatSDK();
+        const option = {
+          type: "txt" as const,
+          msg: "__READ__",
+          to: recipId,
+          chatType: "singleChat" as const,
+        };
+        const msg = SDK.message.create(option);
+        await connRef.current.send(msg);
+      } catch {
+        // ignore
+      }
+    },
+    [currentUser],
+  );
+
   const markConversationAsRead = useCallback(
     async (recipId: string, type: "singleChat" | "groupChat") => {
       if (!currentUser) return;
       try {
         await fetch(
-          `${apiUrl}/messages/read?userId=${currentUser.id}&recipientId=${recipId}&chatType=${type}`,
+          `${apiUrl}/messages/read?userId=${currentUser.id}&username=${encodeURIComponent(currentUser.username)}&recipientId=${recipId}&chatType=${type}`,
           { method: "PATCH" },
         );
         fetchConversations();
+        sendReadSignal(recipId, type);
       } catch {
         // ignore
       }
     },
-    [apiUrl, currentUser, fetchConversations],
+    [apiUrl, currentUser, fetchConversations, sendReadSignal],
   );
 
   interface DBMessageResponse {
@@ -211,6 +234,7 @@ export default function ChatPage() {
       const oldestMsgId = messages[0].id;
       const queryParams = new URLSearchParams({
         userId: currentUser.id,
+        username: currentUser.username,
         recipientId: activeRecipient.id,
         chatType: activeRecipient.type,
         limit: "50",
@@ -261,6 +285,7 @@ export default function ChatPage() {
       try {
         const queryParams = new URLSearchParams({
           userId: currentUser.id,
+          username: currentUser.username,
           recipientId: activeRecipient.id,
           chatType: activeRecipient.type,
           limit: "50",
@@ -326,7 +351,9 @@ export default function ChatPage() {
     if (!currentUser) return;
     const sendHeartbeat = async () => {
       try {
-        await fetch(`${apiUrl}/users/${currentUser.id}/heartbeat`, { method: "POST" });
+        await fetch(`${apiUrl}/users/${currentUser.id}/heartbeat`, {
+          method: "POST",
+        });
         fetchUserDirectory();
       } catch {
         // ignore
@@ -340,7 +367,9 @@ export default function ChatPage() {
   const connectAgoraChat = useCallback(
     async (username: string) => {
       if (!appId) {
-        setErrorMessage("NEXT_PUBLIC_AGORA_APP_ID is not configured in environment.");
+        setErrorMessage(
+          "NEXT_PUBLIC_AGORA_APP_ID is not configured in environment.",
+        );
         return;
       }
 
@@ -409,10 +438,21 @@ export default function ChatPage() {
             if (textMsg.msg === "__TYPING__") {
               if (textMsg.from === currentRecip.id) {
                 setIsRecipientTyping(true);
-                if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+                if (typingTimerRef.current)
+                  clearTimeout(typingTimerRef.current);
                 typingTimerRef.current = setTimeout(() => {
                   setIsRecipientTyping(false);
                 }, 3000);
+              }
+              return;
+            }
+
+            // Check if read signal
+            if (textMsg.msg === "__READ__") {
+              if (textMsg.from === currentRecip.id) {
+                setMessages((prev) =>
+                  prev.map((m) => (m.isSelf ? { ...m, isRead: true } : m)),
+                );
               }
               return;
             }
@@ -724,7 +764,9 @@ export default function ChatPage() {
     return conversations.find((c) => c.id === recipientId);
   };
 
-  const activeContactUser = userDirectory.find((u) => u.username === activeRecipient.id);
+  const activeContactUser = userDirectory.find(
+    (u) => u.username === activeRecipient.id,
+  );
 
   return (
     <div className="h-screen w-screen bg-slate-950 text-slate-100 flex overflow-hidden font-sans">
@@ -871,7 +913,9 @@ export default function ChatPage() {
                     >
                       <div className="relative">
                         <div
-                          style={{ backgroundColor: u.avatarColor || "#3B82F6" }}
+                          style={{
+                            backgroundColor: u.avatarColor || "#3B82F6",
+                          }}
                           className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow"
                         >
                           {u.username[0]?.toUpperCase()}
@@ -891,7 +935,8 @@ export default function ChatPage() {
                           </span>
                         </p>
                         <p className="text-[10px] opacity-80 truncate">
-                          {summary?.lastMessage || (u.bio ? u.bio : "Click to message")}
+                          {summary?.lastMessage ||
+                            (u.bio ? u.bio : "Click to message")}
                         </p>
                       </div>
 
@@ -1090,7 +1135,9 @@ export default function ChatPage() {
                       {msg.isSelf && !msg.isDeleted && (
                         <span
                           className={`text-[11px] font-bold shrink-0 ${
-                            msg.isRead ? "text-cyan-300" : "text-blue-200 opacity-70"
+                            msg.isRead
+                              ? "text-cyan-300"
+                              : "text-blue-200 opacity-70"
                           }`}
                         >
                           {msg.isRead ? "✓✓" : "✓"}
@@ -1189,10 +1236,13 @@ export default function ChatPage() {
                 </span>
                 <span className="text-slate-200">
                   {selectedProfileUser.createdAt
-                    ? new Date(selectedProfileUser.createdAt).toLocaleDateString(
-                        undefined,
-                        { year: "numeric", month: "long", day: "numeric" },
-                      )
+                    ? new Date(
+                        selectedProfileUser.createdAt,
+                      ).toLocaleDateString(undefined, {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
                     : "Joined recently"}
                 </span>
               </div>

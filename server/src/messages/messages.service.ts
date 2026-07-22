@@ -44,6 +44,7 @@ export class MessagesService {
     chatType: 'singleChat' | 'groupChat',
     limit: number = 50,
     before?: string,
+    userUsername?: string,
   ): Promise<{ messages: Message[]; hasMore: boolean }> {
     const query = this.messageRepository.createQueryBuilder('msg');
 
@@ -56,20 +57,23 @@ export class MessagesService {
         },
       );
     } else {
+      const selfIdentifiers = [userId, userUsername].filter(Boolean);
+      const otherIdentifiers = [recipientId].filter(Boolean);
+
       query
         .where(
           new Brackets((qb) => {
             qb.where(
-              'msg.senderId = :userId AND msg.recipientId = :recipientId',
+              '(msg.senderId IN (:...selfIdentifiers) OR msg.senderUsername IN (:...selfIdentifiers)) AND (msg.recipientId IN (:...otherIdentifiers))',
               {
-                userId,
-                recipientId,
+                selfIdentifiers,
+                otherIdentifiers,
               },
             ).orWhere(
-              'msg.senderId = :recipientId AND msg.recipientId = :userId',
+              '(msg.senderId IN (:...otherIdentifiers) OR msg.senderUsername IN (:...otherIdentifiers)) AND (msg.recipientId IN (:...selfIdentifiers))',
               {
-                userId,
-                recipientId,
+                selfIdentifiers,
+                otherIdentifiers,
               },
             );
           }),
@@ -106,15 +110,17 @@ export class MessagesService {
     userId: string,
     recipientId: string,
     chatType: 'singleChat' | 'groupChat',
+    userUsername?: string,
   ): Promise<{ updatedCount: number }> {
     if (chatType === 'singleChat') {
+      const selfIdentifiers = [userId, userUsername].filter(Boolean);
       const result = await this.messageRepository
         .createQueryBuilder()
         .update(Message)
         .set({ isRead: true })
         .where(
-          '(senderId = :recipientId OR senderUsername = :recipientId) AND recipientId = :userId AND isRead = false',
-          { recipientId, userId },
+          '(senderId = :recipientId OR senderUsername = :recipientId) AND (recipientId IN (:...selfIdentifiers)) AND isRead = false',
+          { recipientId, selfIdentifiers },
         )
         .execute();
       return { updatedCount: result.affected || 0 };
@@ -124,10 +130,11 @@ export class MessagesService {
         .update(Message)
         .set({ isRead: true })
         .where(
-          'recipientId = :recipientId AND senderId != :userId AND isRead = false',
+          'recipientId = :recipientId AND senderId != :userId AND senderUsername != :userUsername AND isRead = false',
           {
             recipientId,
             userId,
+            userUsername: userUsername || userId,
           },
         )
         .execute();
@@ -135,13 +142,18 @@ export class MessagesService {
     }
   }
 
-  async getConversations(userId: string): Promise<ConversationSummary[]> {
+  async getConversations(
+    userId: string,
+    userUsername?: string,
+  ): Promise<ConversationSummary[]> {
+    const selfIdentifiers = [userId, userUsername].filter(Boolean);
+
     const subQuery = this.messageRepository
       .createQueryBuilder('m')
       .where(
-        'm.senderId = :userId OR m.recipientId = :userId OR m.recipientId = :globalGroup',
+        'm.senderId IN (:...selfIdentifiers) OR m.senderUsername IN (:...selfIdentifiers) OR m.recipientId IN (:...selfIdentifiers) OR m.recipientId = :globalGroup',
         {
-          userId,
+          selfIdentifiers,
           globalGroup: 'global_group',
         },
       )
@@ -165,19 +177,24 @@ export class MessagesService {
             : msg.recipientId;
         type = 'groupChat';
 
-        if (msg.senderId !== userId && !msg.isRead) {
+        const isSender =
+          selfIdentifiers.includes(msg.senderId) ||
+          selfIdentifiers.includes(msg.senderUsername);
+        if (!isSender && !msg.isRead) {
           unreadCountsMap.set(key, (unreadCountsMap.get(key) || 0) + 1);
         }
       } else {
-        const otherPerson =
-          msg.senderId === userId ? msg.recipientId : msg.senderId;
-        const otherUsername =
-          msg.senderId === userId ? msg.recipientId : msg.senderUsername;
-        key = otherPerson;
-        name = otherUsername;
+        const isSender =
+          selfIdentifiers.includes(msg.senderId) ||
+          selfIdentifiers.includes(msg.senderUsername);
+        const otherPersonKey = isSender
+          ? msg.recipientId
+          : msg.senderUsername || msg.senderId;
+        key = otherPersonKey;
+        name = otherPersonKey;
         type = 'singleChat';
 
-        if (msg.recipientId === userId && !msg.isRead) {
+        if (!isSender && !msg.isRead) {
           unreadCountsMap.set(key, (unreadCountsMap.get(key) || 0) + 1);
         }
       }

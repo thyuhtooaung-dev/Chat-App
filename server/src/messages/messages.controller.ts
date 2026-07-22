@@ -28,6 +28,7 @@ export class MessagesController {
     @Query('recipientId') recipientId: string,
     @Query('chatType') chatType: 'singleChat' | 'groupChat',
     @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number,
+    @Query('username') username?: string,
     @Query('before') before?: string,
   ) {
     return this.messagesService.findPaginated(
@@ -36,12 +37,16 @@ export class MessagesController {
       chatType,
       limit,
       before,
+      username,
     );
   }
 
   @Get('conversations')
-  getConversations(@Query('userId') userId: string) {
-    return this.messagesService.getConversations(userId);
+  getConversations(
+    @Query('userId') userId: string,
+    @Query('username') username?: string,
+  ) {
+    return this.messagesService.getConversations(userId, username);
   }
 
   @Patch('read')
@@ -49,8 +54,14 @@ export class MessagesController {
     @Query('userId') userId: string,
     @Query('recipientId') recipientId: string,
     @Query('chatType') chatType: 'singleChat' | 'groupChat',
+    @Query('username') username?: string,
   ) {
-    return this.messagesService.markAsRead(userId, recipientId, chatType);
+    return this.messagesService.markAsRead(
+      userId,
+      recipientId,
+      chatType,
+      username,
+    );
   }
 
   @Patch(':id')
